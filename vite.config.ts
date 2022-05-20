@@ -7,7 +7,8 @@ export default defineConfig({
     lib: {
       entry: 'package/index.ts',
       formats: ['es', 'cjs', 'iife'],
-      name: 'vi',
+      name: 'vi.js',
+      fileName: format => `vi.${format}.js`,
     },
   },
 })
