@@ -1,4 +1,5 @@
 import 'console-next'
+import { initPipeline } from './initPipeline'
 
 interface Size {
   width: number
@@ -25,7 +26,7 @@ export default class Vi {
       },
       {
         color: '#91c8e4',
-        content: 'v0.0.1',
+        content: 'V0.0.1',
         backgroundColor: '#3a3a3a',
       },
     ])
@@ -63,32 +64,26 @@ export default class Vi {
     })
   }
 
-  draw(
-    pipeline: GPURenderPipeline,
-    vertexObj: any,
-    colorObj: any,
-  ) {
-    if (!this.device)
-      throw new Error('WebGPU is not supported')
-    if (!this.context)
-      throw new Error('canvas is not found')
-    const encoder = this.device.createCommandEncoder()
-    const renderPass = encoder.beginRenderPass({
-      colorAttachments: [{
-        view: this.context.getCurrentTexture().createView(),
-        loadOp: 'clear',
-        storeOp: 'store',
-        clearValue: { r: 1, g: 1, b: 1, a: 1 },
-      }],
-    })
-    renderPass.setPipeline(pipeline)
-    renderPass.setVertexBuffer(0, vertexObj.vertexBuffer)
-    renderPass.setBindGroup(0, colorObj.group)
-    renderPass.draw(vertexObj.vertexCount)
-    renderPass.end()
-
-    const vertexBuffer = encoder.finish()
-    this.device.queue.submit([vertexBuffer])
+  async draw() {
+    const commandEncoder = this.device!.createCommandEncoder()
+    const view = this.context!.getCurrentTexture().createView()
+    const renderPassDescriptor: GPURenderPassDescriptor = {
+      colorAttachments: [
+        {
+          view,
+          clearValue: { r: 0, g: 0, b: 0, a: 1.0 },
+          loadOp: 'clear', // clear/load
+          storeOp: 'store', // store/discard
+        },
+      ],
+    }
+    const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
+    passEncoder.setPipeline(await initPipeline(this.device!, this.format))
+    // 3 vertex form a triangle
+    passEncoder.draw(3)
+    passEncoder.end()
+    // webgpu run in a separate process, all the commands will be executed after submit
+    this.device!.queue.submit([commandEncoder.finish()])
   }
 }
 

@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite server './test/index.html'",
+    "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@vue/reactivity": "^3.2.34",
-    "console-next": "^0.1.5"
+    "console-next": "^0.1.7"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.23.1",

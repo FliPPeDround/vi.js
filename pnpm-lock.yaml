@@ -4,14 +4,14 @@ specifiers:
   '@antfu/eslint-config': ^0.23.1
   '@vue/reactivity': ^3.2.34
   '@webgpu/types': ^0.1.17
-  console-next: ^0.1.5
+  console-next: ^0.1.7
   eslint: ^8.15.0
   typescript: ^4.5.4
   vite: ^2.9.9
 
 dependencies:
   '@vue/reactivity': 3.2.34
-  console-next: 0.1.5
+  console-next: 0.1.7
 
 devDependencies:
   '@antfu/eslint-config': 0.23.1_hcfsmds2fshutdssjqluwm76uu
@@ -551,8 +551,8 @@ packages:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
     dev: true
 
-  /console-next/0.1.5:
-    resolution: {integrity: sha512-Ar5gKildkYjo05R0rpt2cMWU9F+Kd1W5ptMLxEtpUZb12S4jiy1u/EMVJjl9ZQR1ecWkSg2iWyRgxCXb4jVLtw==}
+  /console-next/0.1.7:
+    resolution: {integrity: sha512-Y56+GlLrm1daHtu4khui8aeUotzxA2NsadLGZ7tkO56MUzQ+X1rOKnn5qSDZ7qKj+7bh6PMiXgaFiASav3J52w==}
     dev: false
 
   /cross-spawn/7.0.3:
