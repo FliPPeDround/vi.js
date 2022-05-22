@@ -64,7 +64,12 @@ export default class Vi {
     })
   }
 
-  async draw() {
+  async triangle() {
+    const pipeline = await initPipeline(this.device!, this.format)
+    this.draw(pipeline)
+  }
+
+  async draw(pipeline: GPURenderPipeline) {
     const commandEncoder = this.device!.createCommandEncoder()
     const view = this.context!.getCurrentTexture().createView()
     const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -78,7 +83,7 @@ export default class Vi {
       ],
     }
     const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
-    passEncoder.setPipeline(await initPipeline(this.device!, this.format))
+    passEncoder.setPipeline(pipeline!)
     // 3 vertex form a triangle
     passEncoder.draw(3)
     passEncoder.end()
