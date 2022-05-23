@@ -1,6 +1,7 @@
 import 'console-next'
-import { effect, reactive } from '@vue/reactivity'
-import { initPipeline } from './initPipeline'
+// import type { Ref } from '@vue/reactivity'
+import { effect, reactive, ref } from '@vue/reactivity'
+// import { initPipeline } from './initPipeline'
 import { toRgba8 } from './utils/toRgba8'
 
 interface Size {
@@ -22,9 +23,9 @@ export default class Vi {
     height: 0,
   }
 
-  config: TriangleConfig = {
+  config: TriangleConfig = reactive({
     color: '#FFF',
-  }
+  })
 
   constructor() {
     // eslint-disable-next-line no-console
@@ -72,17 +73,18 @@ export default class Vi {
       format: this.format,
       compositingAlphaMode: 'opaque',
     })
-  }
 
-  async triangle(triangleConfig: TriangleConfig) {
-    const pipeline = await initPipeline(this.device!, this.format, triangleConfig)
-    this.draw(pipeline)
     effect(() => {
-      console.log('this.config: ', this.config)
+      this.draw()
     })
   }
 
-  async draw(pipeline: GPURenderPipeline) {
+  // async triangle(triangleConfig: TriangleConfig) {
+  //   const pipeline = await initPipeline(this.device!, this.format, triangleConfig)
+  //   this.draw(pipeline)
+  // }
+
+  async draw(pipeline?: GPURenderPipeline) {
     const commandEncoder = this.device!.createCommandEncoder()
     const view = this.context!.getCurrentTexture().createView()
     const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -90,17 +92,17 @@ export default class Vi {
         {
           view,
           clearValue: toRgba8(this.config.color),
-          loadOp: 'clear', // clear/load
-          storeOp: 'store', // store/discard
+          loadOp: 'clear',
+          storeOp: 'store',
         },
       ],
     }
     const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
-    passEncoder.setPipeline(pipeline!)
-    // 3 vertex form a triangle
-    passEncoder.draw(3)
+    if (pipeline) {
+      passEncoder.setPipeline(pipeline)
+      passEncoder.draw(3)
+    }
     passEncoder.end()
-    // webgpu run in a separate process, all the commands will be executed after submit
     this.device!.queue.submit([commandEncoder.finish()])
   }
 }
@@ -108,4 +110,5 @@ export default class Vi {
 export {
   effect,
   reactive,
+  ref,
 }

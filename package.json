@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vue-reactivity/watch": "^0.2.0",
     "@vue/reactivity": "^3.2.34",
     "console-next": "^0.1.7"
   },

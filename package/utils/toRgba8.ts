@@ -1,4 +1,4 @@
-export function toRgba8(color: string) {
+export function toRgba8(color: string): GPUColor {
   const hexReg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6}|[0-9a-fA-f]{8})$/
   const rgbaReg = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/
   if (rgbaReg.test(color)) {
