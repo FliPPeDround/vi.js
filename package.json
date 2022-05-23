@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "vite serve test --port 8888",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

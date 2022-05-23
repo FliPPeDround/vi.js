@@ -1,7 +1,16 @@
 import triangleVert from './shaders/triangle.vert.wgsl?raw'
 import redFrag from './shaders/red.frag.wgsl?raw'
 
-export async function initPipeline(device: GPUDevice, format: GPUTextureFormat): Promise<GPURenderPipeline> {
+interface TriangleConfig {
+  color: string
+}
+export async function initPipeline(
+  device: GPUDevice,
+  format: GPUTextureFormat,
+  triangleConfig: TriangleConfig,
+): Promise<GPURenderPipeline> {
+  console.log(triangleConfig)
+
   const descriptor: GPURenderPipelineDescriptor = {
     vertex: {
       module: device.createShaderModule({
@@ -10,7 +19,7 @@ export async function initPipeline(device: GPUDevice, format: GPUTextureFormat):
       entryPoint: 'main',
     },
     primitive: {
-      topology: 'triangle-list', // try point-list, line-list, line-strip, triangle-strip?
+      topology: 'triangle-list',
     },
     fragment: {
       module: device.createShaderModule({

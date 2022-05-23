@@ -1,19 +1,29 @@
 import 'console-next'
+import { effect, reactive } from '@vue/reactivity'
 import { initPipeline } from './initPipeline'
+import { toRgba8 } from './utils/toRgba8'
 
 interface Size {
   width: number
   height: number
 }
 
+interface TriangleConfig {
+  color: string
+}
+
 export default class Vi {
-  adapter: GPUAdapter | null = null
-  device: GPUDevice | null = null
-  context: GPUCanvasContext | null = null
+  adapter?: GPUAdapter
+  device?: GPUDevice
+  context?: GPUCanvasContext
   format: GPUTextureFormat = 'rgba8unorm'
   size: Size = {
     width: 0,
     height: 0,
+  }
+
+  config: TriangleConfig = {
+    color: '#FFF',
   }
 
   constructor() {
@@ -35,7 +45,7 @@ export default class Vi {
   async initwebGPU() {
     if (!navigator.gpu)
       throw new Error('WebGPU is not supported')
-    this.adapter = await navigator.gpu.requestAdapter()
+    this.adapter = (await navigator.gpu.requestAdapter())!
     if (!this.adapter)
       throw new Error('WebGPU is not supported')
     this.device = await this.adapter.requestDevice()
@@ -48,7 +58,7 @@ export default class Vi {
     const canvas = document.querySelector(selectors) as HTMLCanvasElement
     if (!canvas)
       throw new Error('canvas is not found')
-    this.context = canvas.getContext('webgpu')
+    this.context = canvas.getContext('webgpu')!
     if (!this.context)
       throw new Error('WebGPU is not supported')
     this.format = navigator.gpu.getPreferredCanvasFormat()
@@ -64,9 +74,12 @@ export default class Vi {
     })
   }
 
-  async triangle() {
-    const pipeline = await initPipeline(this.device!, this.format)
+  async triangle(triangleConfig: TriangleConfig) {
+    const pipeline = await initPipeline(this.device!, this.format, triangleConfig)
     this.draw(pipeline)
+    effect(() => {
+      console.log('this.config: ', this.config)
+    })
   }
 
   async draw(pipeline: GPURenderPipeline) {
@@ -76,7 +89,7 @@ export default class Vi {
       colorAttachments: [
         {
           view,
-          clearValue: { r: 0, g: 0, b: 0, a: 1.0 },
+          clearValue: toRgba8(this.config.color),
           loadOp: 'clear', // clear/load
           storeOp: 'store', // store/discard
         },
@@ -92,3 +105,7 @@ export default class Vi {
   }
 }
 
+export {
+  effect,
+  reactive,
+}
