@@ -7,9 +7,18 @@ interface TriangleConfig {
 export async function initPipeline(
   device: GPUDevice,
   format: GPUTextureFormat,
-  triangleConfig: TriangleConfig,
-): Promise<GPURenderPipeline> {
-  console.log(triangleConfig)
+  _triangleConfig?: TriangleConfig,
+) {
+  const vertex = new Float32Array([
+    0, 0.5,
+    -0.5, -0.5,
+    0.5, -0.5,
+  ])
+  const vertexBuffer = device.createBuffer({
+    size: 24,
+    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+  })
+  device.queue.writeBuffer(vertexBuffer, 0, vertex)
 
   const descriptor: GPURenderPipelineDescriptor = {
     vertex: {
@@ -17,9 +26,14 @@ export async function initPipeline(
         code: triangleVert,
       }),
       entryPoint: 'main',
-    },
-    primitive: {
-      topology: 'triangle-list',
+      buffers: [{
+        arrayStride: 8,
+        attributes: [{
+          shaderLocation: 0,
+          offset: 0,
+          format: 'float32x2',
+        }],
+      }],
     },
     fragment: {
       module: device.createShaderModule({
@@ -32,7 +46,21 @@ export async function initPipeline(
         },
       ],
     },
+    primitive: {
+      topology: 'triangle-list',
+    },
     layout: 'auto',
   }
-  return await device.createRenderPipelineAsync(descriptor)
+
+  const vertexInfo = {
+    vertex,
+    vertexBuffer,
+    vertexCount: 3,
+  }
+  const pipeline = await device.createRenderPipelineAsync(descriptor)
+
+  return {
+    pipeline,
+    vertexInfo,
+  }
 }

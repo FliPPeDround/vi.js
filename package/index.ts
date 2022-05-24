@@ -1,13 +1,8 @@
 import 'console-next'
 // import type { Ref } from '@vue/reactivity'
 import { effect, reactive, ref } from '@vue/reactivity'
-// import { initPipeline } from './initPipeline'
+import { initPipeline } from './initPipeline'
 import { toRgba8 } from './utils/toRgba8'
-
-interface Size {
-  width: number
-  height: number
-}
 
 interface TriangleConfig {
   color: string
@@ -18,10 +13,6 @@ export default class Vi {
   device?: GPUDevice
   context?: GPUCanvasContext
   format: GPUTextureFormat = 'rgba8unorm'
-  size: Size = {
-    width: 0,
-    height: 0,
-  }
 
   config: TriangleConfig = reactive({
     color: '#FFF',
@@ -46,7 +37,11 @@ export default class Vi {
   async initwebGPU() {
     if (!navigator.gpu)
       throw new Error('WebGPU is not supported')
-    this.adapter = (await navigator.gpu.requestAdapter())!
+    this.adapter = (
+      await navigator.gpu.requestAdapter({
+        powerPreference: 'high-performance',
+      })
+    )!
     if (!this.adapter)
       throw new Error('WebGPU is not supported')
     this.device = await this.adapter.requestDevice()
@@ -59,14 +54,18 @@ export default class Vi {
     const canvas = document.querySelector(selectors) as HTMLCanvasElement
     if (!canvas)
       throw new Error('canvas is not found')
+    const devicePixelRatio = window.devicePixelRatio || 1
+    const size = {
+      width: canvas.clientWidth * devicePixelRatio,
+      height: canvas.clientHeight * devicePixelRatio,
+    }
+    canvas.width = size.width
+    canvas.height = size.height
+
     this.context = canvas.getContext('webgpu')!
     if (!this.context)
       throw new Error('WebGPU is not supported')
     this.format = navigator.gpu.getPreferredCanvasFormat()
-    this.size = {
-      width: canvas.width,
-      height: canvas.height,
-    }
 
     this.context.configure({
       device: this.device!,
@@ -79,12 +78,12 @@ export default class Vi {
     })
   }
 
-  // async triangle(triangleConfig: TriangleConfig) {
-  //   const pipeline = await initPipeline(this.device!, this.format, triangleConfig)
-  //   this.draw(pipeline)
-  // }
+  async triangle(triangleConfig: TriangleConfig) {
+    const { pipeline, vertexInfo } = await initPipeline(this.device!, this.format, triangleConfig)
+    this.draw(pipeline, vertexInfo)
+  }
 
-  async draw(pipeline?: GPURenderPipeline) {
+  async draw(pipeline?: GPURenderPipeline, vertexInfo?: { vertex: Float32Array; vertexBuffer: GPUBuffer; vertexCount: number }) {
     const commandEncoder = this.device!.createCommandEncoder()
     const view = this.context!.getCurrentTexture().createView()
     const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -100,7 +99,8 @@ export default class Vi {
     const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
     if (pipeline) {
       passEncoder.setPipeline(pipeline)
-      passEncoder.draw(3)
+      passEncoder.setVertexBuffer(0, vertexInfo!.vertexBuffer)
+      passEncoder.draw(vertexInfo!.vertexCount)
     }
     passEncoder.end()
     this.device!.queue.submit([commandEncoder.finish()])
