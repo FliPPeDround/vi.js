@@ -1,9 +1,10 @@
-export function toRgba8(color: string): GPUColor {
+export function toRgba8(color: string, type: 'array' | 'object' = 'object') {
   const hexReg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6}|[0-9a-fA-f]{8})$/
   const rgbaReg = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)$/
+  let result
   if (rgbaReg.test(color)) {
     const [, r, g, b, a] = color.match(rgbaReg)!
-    return {
+    result = {
       r: (parseInt(r, 10)) / 255,
       g: (parseInt(g, 10)) / 255,
       b: (parseInt(b, 10)) / 255,
@@ -20,9 +21,14 @@ export function toRgba8(color: string): GPUColor {
     const colorChange = []
     for (let i = 1; i < color.length - 1; i += 2)
       colorChange.push(parseInt(`0x${color.slice(i, i + 2)}`) / 255)
-    return { r: colorChange[0], g: colorChange[1], b: colorChange[2], a: colorChange[3] ?? 1 }
+    result = { r: colorChange[0], g: colorChange[1], b: colorChange[2], a: colorChange[3] ?? 1 }
   }
   else {
     throw new Error('Invalid color format')
   }
+  if (type === 'array')
+    return [result.r, result.g, result.b, result.a]
+
+  else
+    return result
 }

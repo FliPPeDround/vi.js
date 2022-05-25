@@ -8,6 +8,18 @@ interface TriangleConfig {
   color: string
 }
 
+interface TriangleVertexInfo {
+  vertex: Float32Array
+  vertexBuffer: GPUBuffer
+  vertexCount: number
+}
+
+interface TriangleFragmentInfo {
+  color: Float32Array
+  colorBuffer: GPUBuffer
+  group: GPUBindGroup
+}
+
 export default class Vi {
   adapter?: GPUAdapter
   device?: GPUDevice
@@ -15,6 +27,10 @@ export default class Vi {
   format: GPUTextureFormat = 'rgba8unorm'
 
   config: TriangleConfig = reactive({
+    color: '#FFF',
+  })
+
+  triangleConfig: TriangleConfig = reactive({
     color: '#FFF',
   })
 
@@ -78,12 +94,12 @@ export default class Vi {
     })
   }
 
-  async triangle(triangleConfig: TriangleConfig) {
-    const { pipeline, vertexInfo } = await initPipeline(this.device!, this.format, triangleConfig)
-    this.draw(pipeline, vertexInfo)
-  }
+  triangle = effect(async () => {
+    const { pipeline, vertexInfo, colorInfo } = await initPipeline(this.device!, this.format, this.triangleConfig)
+    this.draw(pipeline, vertexInfo, colorInfo)
+  })
 
-  async draw(pipeline?: GPURenderPipeline, vertexInfo?: { vertex: Float32Array; vertexBuffer: GPUBuffer; vertexCount: number }) {
+  async draw(pipeline?: GPURenderPipeline, vertexInfo?: TriangleVertexInfo, colorInfo?: TriangleFragmentInfo) {
     const commandEncoder = this.device!.createCommandEncoder()
     const view = this.context!.getCurrentTexture().createView()
     const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -100,6 +116,7 @@ export default class Vi {
     if (pipeline) {
       passEncoder.setPipeline(pipeline)
       passEncoder.setVertexBuffer(0, vertexInfo!.vertexBuffer)
+      passEncoder.setBindGroup(0, colorInfo!.group)
       passEncoder.draw(vertexInfo!.vertexCount)
     }
     passEncoder.end()

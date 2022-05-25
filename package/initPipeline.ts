@@ -1,5 +1,7 @@
+import { reactive } from '@vue/reactivity'
 import triangleVert from './shaders/triangle.vert.wgsl?raw'
-import redFrag from './shaders/red.frag.wgsl?raw'
+import colorFrag from './shaders/color.frag.wgsl?raw'
+import { toRgba8 } from './utils/toRgba8'
 
 interface TriangleConfig {
   color: string
@@ -7,7 +9,7 @@ interface TriangleConfig {
 export async function initPipeline(
   device: GPUDevice,
   format: GPUTextureFormat,
-  _triangleConfig?: TriangleConfig,
+  triangleConfig?: TriangleConfig,
 ) {
   const vertex = new Float32Array([
     0, 0.5,
@@ -19,6 +21,13 @@ export async function initPipeline(
     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
   })
   device.queue.writeBuffer(vertexBuffer, 0, vertex)
+
+  const color = new Float32Array(toRgba8(triangleConfig?.color ?? '#FFF', 'array') as Iterable<number>)
+  const colorBuffer = device.createBuffer({
+    size: 16,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  })
+  device.queue.writeBuffer(colorBuffer, 0, color)
 
   const descriptor: GPURenderPipelineDescriptor = {
     vertex: {
@@ -37,7 +46,7 @@ export async function initPipeline(
     },
     fragment: {
       module: device.createShaderModule({
-        code: redFrag,
+        code: colorFrag,
       }),
       entryPoint: 'main',
       targets: [
@@ -59,8 +68,22 @@ export async function initPipeline(
   }
   const pipeline = await device.createRenderPipelineAsync(descriptor)
 
+  const group = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [{
+      binding: 0,
+      resource: {
+        buffer: colorBuffer,
+      },
+    }],
+  })
+
+  const colorInfo = reactive({
+    color, colorBuffer, group,
+  })
   return {
     pipeline,
     vertexInfo,
+    colorInfo,
   }
 }
