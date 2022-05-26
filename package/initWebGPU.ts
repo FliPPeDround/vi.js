@@ -1,6 +1,10 @@
+/* eslint-disable import/no-mutable-exports */
+/* eslint-disable prefer-const */
 import 'console-next'
 import { effect, reactive, ref } from '@vue/reactivity'
 import { toRgba8 } from './utils/toRgba8'
+export let device: GPUDevice
+export let format: GPUTextureFormat = 'rgba8unorm'
 
 interface TriangleConfig {
   color: string
@@ -12,11 +16,15 @@ interface TriangleVertexInfo {
   vertexCount: number
 }
 
+interface PipelineConfig {
+  pipeline: GPURenderPipeline
+  vertexInfo: TriangleVertexInfo
+  colorInfo: any
+}
+
 export class Vi {
   adapter?: GPUAdapter
-  device?: GPUDevice
   context?: GPUCanvasContext
-  format: GPUTextureFormat = 'rgba8unorm'
 
   config: TriangleConfig = reactive({
     color: '#FFF',
@@ -35,7 +43,7 @@ export class Vi {
     )!
     if (!this.adapter)
       throw new Error('WebGPU is not supported')
-    this.device = await this.adapter.requestDevice()
+    device = await this.adapter.requestDevice()
   }
 
   async mount(selectors: string) {
@@ -71,11 +79,11 @@ export class Vi {
     this.context = canvas.getContext('webgpu')!
     if (!this.context)
       throw new Error('WebGPU is not supported')
-    this.format = navigator.gpu.getPreferredCanvasFormat()
+    format = navigator.gpu.getPreferredCanvasFormat()
 
     this.context.configure({
-      device: this.device!,
-      format: this.format,
+      device,
+      format,
       compositingAlphaMode: 'opaque',
     })
 
@@ -84,8 +92,8 @@ export class Vi {
     })
   }
 
-  draw(pipeline?: GPURenderPipeline, vertexInfo?: TriangleVertexInfo, colorInfo?: TriangleFragmentInfo) {
-    const commandEncoder = this.device!.createCommandEncoder()
+  draw(pipelineConfig?: PipelineConfig) {
+    const commandEncoder = device!.createCommandEncoder()
     const view = this.context!.getCurrentTexture().createView()
     const renderPassDescriptor: GPURenderPassDescriptor = {
       colorAttachments: [
@@ -98,18 +106,18 @@ export class Vi {
       ],
     }
     const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
-    if (pipeline) {
-      passEncoder.setPipeline(pipeline)
-      passEncoder.setVertexBuffer(0, vertexInfo!.vertexBuffer)
-      passEncoder.setBindGroup(0, colorInfo!.group)
-      passEncoder.draw(vertexInfo!.vertexCount)
+    if (pipelineConfig) {
+      passEncoder.setPipeline(pipelineConfig!.pipeline)
+      passEncoder.setVertexBuffer(0, pipelineConfig!.vertexInfo.vertexBuffer)
+      passEncoder.setBindGroup(0, pipelineConfig!.colorInfo.group)
+      passEncoder.draw(pipelineConfig!.vertexInfo.vertexCount)
     }
     passEncoder.end()
-    this.device!.queue.submit([commandEncoder.finish()])
+    device!.queue.submit([commandEncoder.finish()])
   }
 
-  add(pipeline: GPURenderPipeline) {
-    this.draw(pipeline)
+  add(pipelineConfig: PipelineConfig) {
+    this.draw(pipelineConfig)
   }
 }
 

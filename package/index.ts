@@ -1,2 +1,2 @@
 export { Vi } from './initWebGPU'
-export { initPipeline } from './Triangle'
+export { Triangle } from './Triangle'
