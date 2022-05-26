@@ -1,21 +1,26 @@
-import { reactive } from '@vue/reactivity'
-import triangleVert from './shaders/triangle.vert.wgsl?raw'
-import colorFrag from './shaders/color.frag.wgsl?raw'
+import { effect, reactive } from '@vue/reactivity'
 import { toRgba8 } from './utils/toRgba8'
 import { device, format } from './initWebGPU'
+import { pipelineConfig } from './store'
+
+import triangleVert from './shaders/triangle.vert.wgsl?raw'
+import colorFrag from './shaders/color.frag.wgsl?raw'
 
 interface TriangleConfig {
   color: string
 }
 
 export class Triangle {
-  config: TriangleConfig
+  config: TriangleConfig = reactive({
+    color: '#FFF',
+  })
+
   constructor(config: TriangleConfig) {
-    this.config = config
-    this.initPipeline()
+    this.config.color = config.color
+    this.create()
   }
 
-  async initPipeline() {
+  create = effect(async () => {
     const vertex = new Float32Array([
       0, 0.5,
       -0.5, -0.5,
@@ -27,7 +32,7 @@ export class Triangle {
     })
     device.queue.writeBuffer(vertexBuffer, 0, vertex)
 
-    const color = new Float32Array(toRgba8(this.config?.color ?? '#FFF', 'array') as Iterable<number>)
+    const color = new Float32Array(toRgba8(this.config.color, 'array') as Iterable<number>)
     const colorBuffer = device.createBuffer({
       size: 16,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -86,10 +91,8 @@ export class Triangle {
     const colorInfo = reactive({
       color, colorBuffer, group,
     })
-    return {
-      pipeline,
-      vertexInfo,
-      colorInfo,
-    }
-  }
+    pipelineConfig.vertexInfo = vertexInfo
+    pipelineConfig.pipeline = pipeline
+    pipelineConfig.colorInfo = colorInfo
+  })
 }

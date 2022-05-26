@@ -3,6 +3,7 @@
 import 'console-next'
 import { effect, reactive, ref } from '@vue/reactivity'
 import { toRgba8 } from './utils/toRgba8'
+import { pipelineConfig } from './store'
 export let device: GPUDevice
 export let format: GPUTextureFormat = 'rgba8unorm'
 
@@ -92,7 +93,7 @@ export class Vi {
     })
   }
 
-  draw(pipelineConfig?: PipelineConfig) {
+  draw() {
     const commandEncoder = device!.createCommandEncoder()
     const view = this.context!.getCurrentTexture().createView()
     const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -106,19 +107,19 @@ export class Vi {
       ],
     }
     const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
-    if (pipelineConfig) {
-      passEncoder.setPipeline(pipelineConfig!.pipeline)
-      passEncoder.setVertexBuffer(0, pipelineConfig!.vertexInfo.vertexBuffer)
-      passEncoder.setBindGroup(0, pipelineConfig!.colorInfo.group)
-      passEncoder.draw(pipelineConfig!.vertexInfo.vertexCount)
+    if (pipelineConfig?.colorInfo) {
+      passEncoder.setPipeline(<GPURenderPipeline>pipelineConfig.pipeline)
+      passEncoder.setVertexBuffer(0, (<PipelineConfig>pipelineConfig).vertexInfo.vertexBuffer)
+      passEncoder.setBindGroup(0, (<PipelineConfig>pipelineConfig).colorInfo.group)
+      passEncoder.draw((<PipelineConfig>pipelineConfig).vertexInfo.vertexCount)
     }
     passEncoder.end()
     device!.queue.submit([commandEncoder.finish()])
   }
 
-  add(pipelineConfig: PipelineConfig) {
-    this.draw(pipelineConfig)
-  }
+  // add(pipelineConfig: PipelineConfig) {
+  //   this.draw(pipelineConfig)
+  // }
 }
 
 export {
