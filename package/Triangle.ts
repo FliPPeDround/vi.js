@@ -6,6 +6,14 @@ import { toRgba8 } from './utils/toRgba8'
 interface TriangleConfig {
   color: string
 }
+
+export class Triangle {
+  config: TriangleConfig
+  constructor(config: TriangleConfig) {
+    this.config = config
+  }
+  async initPipeline(device: GPUDevice) {
+}
 export async function initPipeline(
   device: GPUDevice,
   format: GPUTextureFormat,
