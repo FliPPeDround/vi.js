@@ -15,5 +15,5 @@
     "noImplicitReturns": true,
     "types": ["vite/client", "@webgpu/types"]
   },
-  "include": ["package", "test"]
+  "include": ["package", "example"]
 }
