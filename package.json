@@ -3,20 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite serve test --port 8888",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "test": "vitest"
   },
   "dependencies": {
-    "@vue-reactivity/watch": "^0.2.0",
     "@vue/reactivity": "^3.2.34",
     "console-next": "^0.1.7"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.23.1",
-    "@webgpu/types": "^0.1.17",
+    "@webgpu/types": "^0.1.21",
     "eslint": "^8.15.0",
     "typescript": "^4.5.4",
-    "vite": "^2.9.9"
+    "vitest": "^0.17.0"
   }
 }

@@ -2,8 +2,8 @@
 /* eslint-disable prefer-const */
 import 'console-next'
 import { effect, reactive, ref } from '@vue/reactivity'
-import { toRgba8 } from './utils/toRgba8'
-import { pipelineConfig } from './store'
+import { toRgba8 } from '../utils/toRgba8'
+import { pipelineConfig } from '../store'
 export let device: GPUDevice
 export let format: GPUTextureFormat = 'rgba8unorm'
 
@@ -26,12 +26,12 @@ interface PipelineConfig {
 export class Vi {
   adapter?: GPUAdapter
   context?: GPUCanvasContext
+  config: TriangleConfig
 
-  config: TriangleConfig = reactive({
-    color: '#FFF',
-  })
-
-  constructor() {
+  constructor(
+    public options: any,
+  ) {
+    this.config = reactive(options.config)
   }
 
   async initwebGPU() {

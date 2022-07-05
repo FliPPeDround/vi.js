@@ -1,6 +1,6 @@
 import { effect, reactive } from '@vue/reactivity'
 import { toRgba8 } from './utils/toRgba8'
-import { device, format } from './initWebGPU'
+import { device, format } from './init/initWebGPU'
 import { pipelineConfig } from './store'
 
 import triangleVert from './shaders/triangle.vert.wgsl?raw'
